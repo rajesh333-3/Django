@@ -1,0 +1,24 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myvault/style.css' %}">
+
+<h3 style="color:orange">APP CREDENTIALS</h3>
+<br>
+<a href="{% url 'myvault:new_cred' %}">
+    <input type="submit" value="ADD NEW CREDENTIALS" style="background-color : rgb(69, 182, 17); color : white; border-color : blue";>
+</a>
+
+{%if all_apps_list %}
+    <ul>
+        {% for app in all_apps_list%}
+            <li>
+                <a href="{% url 'myvault:reveal' app.app_name %}" style="color:orange">{{ app.app_name }}</a>
+                
+            </li><br>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No apps are available.</p>
+{% endif %}
+
+
+

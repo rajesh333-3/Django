@@ -1,0 +1,17 @@
+<h1>{{ question.question_text }}</h1>
+
+<ul>
+{% for choice in question.choice_set.all %}
+    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+{% endfor %}
+</ul>
+
+<a href="{% url 'polls:detail' question.id %}">
+    <input type="submit" value="Vote Again ?" style="background-color : rgb(245, 90, 13); color : white; border-color : blue";>
+</a>
+
+<br>
+<br>
+<a href="{% url 'polls:index' %}">
+    <input type="submit" value="HOME" style="background-color : rgb(13, 245, 233); color : white; border-color : blue";>
+</a>

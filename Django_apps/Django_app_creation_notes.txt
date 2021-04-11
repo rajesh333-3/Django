@@ -1,0 +1,319 @@
+ONLY COMMANDS:
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+python -m django --version
+
+django-admin startproject mysite
+
+python manage.py startapp <app name>
+
+python manage.py runserver
+
+http://localhost:8000/<app name> 
+
+python manage.py shell
+
+python manage.py makemigrations appname
+
+python manage.py sqlmigrate appname 0001
+
+python manage.py migrate
+
+python manage.py shell
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+You can tell Django is installed and which version by running the following command in a shell prompt (indicated by the $ prefix):
+
+$ python -m django --version
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>Docker>>>>>>>>>>>>
+docker cp repo:/git/getting-started/ .
+
+
+cd getting-started/
+
+docker build -t <app-name> .
+
+docker run -d -p 80:80 --name docker-tutorial docker101tutorial
+--------------------------------------------------------------------------------------
+ cd into a directory where you’d like to store your code, then run the following command:
+
+$ django-admin startproject mysite
+
+creates a folder with below structure:
+mysite/
+    manage.py
+    mysite/
+        __init__.py
+        settings.py
+        urls.py
+        asgi.py
+        wsgi.py
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+The development server¶
+Let’s verify your Django project works. Change into the outer mysite directory, if you haven’t already, and run the following commands:
+
+$ python manage.py runserver
+
+#python manage.py runserver 8080 --> to define a specific port to run
+
+Note
+
+Ignore the warning about unapplied database migrations for now; we’ll deal with the database shortly.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Projects vs. apps
+
+What’s the difference between a project and an app? An app is a Web application that does something – e.g., a Weblog system, a database of public records or a small poll app. A project is a collection of configuration and apps for a particular website. A project can contain multiple apps. An app can be in multiple projects.
+
+To create your app, make sure you’re in the same directory as manage.py and type this command:
+
+$ python manage.py startapp polls
+
+That’ll create a directory polls, which is laid out like this:
+
+polls/
+    __init__.py
+    admin.py
+    apps.py
+    migrations/
+        __init__.py
+    models.py
+    tests.py
+    views.py
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Write your first view¶
+Let’s write the first view. Open the file polls/views.py and put the following Python code in it:
+
+polls/views.py¶
+from django.http import HttpResponse
+
+
+def index(request):
+    return HttpResponse("Hello, world. You're at the polls index.")
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+This is the simplest view possible in Django. To call the view, we need to map it to a URL - and for this we need a URLconf.
+>>>>>>>>>>>>>>>>>>>>>>
+To create a URLconf in the polls directory, create a file called urls.py.
+In the polls/urls.py file include the following code:
+polls/urls.py¶
+-----------------------------
+from django.urls import path
+
+from . import views
+
+urlpatterns = [
+    path('', views.index, name='index'),
+]
+------------------------------
+The next step is to point the root URLconf at the polls.urls module. In mysite/urls.py, add an import for django.urls.include and insert an include() in the urlpatterns list, so you have:
+mysite/urls.py¶
+--------------------------------------------
+from django.contrib import admin
+from django.urls import include, path
+
+urlpatterns = [
+    path('polls/', include('polls.urls')),
+    path('admin/', admin.site.urls),
+]
+--------------------------------------------
+The include() function allows referencing other URLconfs. Whenever Django encounters include(), it chops off whatever part of the URL matched up to that point and sends the remaining string to the included URLconf for further processing.
+
+The idea behind include() is to make it easy to plug-and-play URLs. Since polls are in their own URLconf (polls/urls.py), they can be placed under “/polls/”, or under “/fun_polls/”, or under “/content/polls/”, or any other path root, and the app will still work.
+
+When to use include()
+
+You should always use include() when you include other URL patterns. admin.site.urls is the only exception to this.
+
+You have now wired an index view into the URLconf. Verify it’s working with the following command:
+
+$ python manage.py runserver
+
+hit the url:
+
+http://localhost:8000/polls/ 
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Note:
+The path() function is passed four arguments, two required: route and view, and two optional: kwargs, and name.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Database setup¶
+
+Now, open up mysite/settings.py It’s a normal Python module with module-level variables representing Django settings.
+
+By default, the configuration uses SQLite. If you’re new to databases, or you’re just interested in trying Django, this is the easiest choice. SQLite is included in Python, so you won’t need to install anything else to support your database. When starting your first real project, however, you may want to use a more scalable database like PostgreSQL, to avoid database-switching headaches down the road.
+If you wish to use another database, install the appropriate database bindings and change the following keys in the DATABASES 'default' item to match your database connection settings:
+
+ENGINE – Either 'django.db.backends.sqlite3', 'django.db.backends.postgresql', 'django.db.backends.mysql', or 'django.db.backends.oracle'. Other backends are also available.
+NAME – The name of your database. If you’re using SQLite, the database will be a file on your computer; in that case, NAME should be the full absolute path, including filename, of that file. The default value, BASE_DIR / 'db.sqlite3', will store the file in your project directory.
+If you are not using SQLite as your database, additional settings such as USER, PASSWORD, and HOST must be added. For more details, see the reference documentation for DATABASES.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Some of these applications make use of at least one database table, though, so we need to create the tables in the database before we can use them. To do that, run the following command:
+
+$ python manage.py migrate
+
+The migrate command looks at the INSTALLED_APPS setting and creates any necessary database tables according to the database settings in your mysite/settings.py file and the database migrations shipped with the app (we’ll cover those later). You’ll see a message for each migration it applies. If you’re interested, run the command-line client for your database and type \dt (PostgreSQL), SHOW TABLES; (MariaDB, MySQL), .schema (SQLite), or SELECT TABLE_NAME FROM USER_TABLES; (Oracle) to display the tables Django created.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Creating models:
+
+– essentially, your database layout, with additional metadata.
+A model is the single, definitive source of truth about your data. It contains the essential fields and behaviors of the data you’re storing. Django follows the DRY Principle.
+Don’t repeat yourself (DRY)¶
+Every distinct concept and/or piece of data should live in one, and only one, place. Redundancy is bad. Normalization is good.
+The goal is to define your data model in one place and automatically derive things from it.
+
+These concepts are represented by Python classes. Edit the polls/models.py file so it looks like this:
+
+polls/models.py¶
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+from django.db import models
+
+
+class Question(models.Model):
+    question_text = models.CharField(max_length=200)
+    pub_date = models.DateTimeField('date published')
+
+
+class Choice(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    choice_text = models.CharField(max_length=200)
+    votes = models.IntegerField(default=0)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Activating models¶
+That small bit of model code gives Django a lot of information. With it, Django is able to:
+
+Create a database schema (CREATE TABLE statements) for this app.
+Create a Python database-access API for accessing Question and Choice objects.
+But first we need to tell our project that the polls app is installed.
+NOTE:Django apps are “pluggable”: You can use an app in multiple projects, and you can distribute apps, because they don’t have to be tied to a given Django installation.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+To include the app in our project, we need to add a reference to its configuration class in the INSTALLED_APPS setting. The PollsConfig class is in the polls/apps.py file, so its dotted path is 'polls.apps.PollsConfig'. Edit the mysite/settings.py file and add that dotted path to the INSTALLED_APPS setting
+add this line >>>>>>>>>>>
+'polls.apps.PollsConfig',
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Now Django knows to include the polls app. Let’s run another command:
+
+/ 
+$ python manage.py makemigrations polls
+
+By running makemigrations, you’re telling Django that you’ve made some changes to your models (in this case, you’ve made new ones) and that you’d like the changes to be stored as a migration.
+
+Migrations are how Django stores changes to your models (and thus your database schema) - they’re files on disk. You can read the migration for your new model if you like; it’s the file polls/migrations/0001_initial.py. Don’t worry, you’re not expected to read them every time Django makes one, but they’re designed to be human-editable in case you want to manually tweak how Django changes things.
+
+There’s a command that will run the migrations for you and manage your database schema automatically - that’s called migrate, and we’ll come to it in a moment - but first, let’s see what SQL that migration would run. The sqlmigrate command takes migration names and returns their SQL:
+
+$ python manage.py sqlmigrate polls 0001
+
+-- gives the sql command to create DB table
+run 
+python manage.py check
+>>System check identified no issues (0 silenced).
+this checks for any problems in your project without making migrations or touching the database.
+
+Now, run migrate again to create those model tables in your database:
+
+/ 
+$ python manage.py migrate
+>>
+Operations to perform:
+  Apply all migrations: admin, auth, contenttypes, polls, sessions
+Running migrations:
+  Applying polls.0001_initial... OK
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+The migrate command takes all the migrations that haven’t been applied (Django tracks which ones are applied using a special table in your database called django_migrations) and runs them against your database - essentially, synchronizing the changes you made to your models with the schema in the database.
+
+Migrations are very powerful and let you change your models over time, as you develop your project, without the need to delete your database or tables and make new ones - it specializes in upgrading your database live, without losing data. 
+
+three-step guide to making model changes:
+-----------------------------------------
+Change your models (in models.py).
+Run python manage.py makemigrations to create migrations for those changes
+Run python manage.py migrate to apply those changes to the database
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Playing with the API¶
+Now, let’s hop into the interactive Python shell and play around with the free API Django gives you. To invoke the Python shell, use this command:
+
+/ 
+$ python manage.py shell
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Question.objects.all()
+q = Question(question_text="What's Your Name ?", pub_date=timezone.now())
+q.save()
+q.id
+q.choice_set.create(choice_text='Rajesh', votes=0)
+.
+.
+.
+q.choice_set.all()
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Introducing the Django Admin¶
+Philosophy
+
+Generating admin sites for your staff or clients to add, change, and delete content is tedious work that doesn’t require much creativity. For that reason, Django entirely automates creation of admin interfaces for models.
+
+Django was written in a newsroom environment, with a very clear separation between “content publishers” and the “public” site. Site managers use the system to add news stories, events, sports scores, etc., and that content is displayed on the public site. Django solves the problem of creating a unified interface for site administrators to edit content.
+
+The admin isn’t intended to be used by site visitors. It’s for site managers
+
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Creating an admin user¶
+First we’ll need to create a user who can login to the admin site. Run the following command:
+
+/ 
+$ python manage.py createsuperuser
+
+>>>>>>>>>>>>>>>>>>>
+C:\Users\VenkataDurgaRajesh\projects\Django_apps\mysite>python manage.py createsuperuser   
+Username (leave blank to use 'venkatadurgarajesh'): 
+Email address: venkatadurgarajesh.thoomu@gmail.com
+Password: 
+Password (again):
+Superuser created successfully.
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+hIt url >> http://127.0.0.1:8000/admin/
+You should see a few types of editable content: groups and users. They are provided by django.contrib.auth, the authentication framework shipped by Django.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Make the poll app modifiable in the admin¶
+But where’s our poll app? It’s not displayed on the admin index page.
+Only one more thing to do: we need to tell the admin that Question objects have an admin interface. To do this, open the polls/admin.py file, and edit it 
+>>>>>>>>>>>>>>>>>
+from django.contrib import admin
+
+from .models import Question
+
+admin.site.register(Question)
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+To get from a URL to a view, Django uses what are known as ‘URLconfs’. A URLconf maps URL patterns to views.
+add new views........
+Wire these new views into the polls.urls module by adding the following path() calls:
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Write views that actually do something¶
+
+Each view is responsible for doing one of two things: returning an HttpResponse object containing the content for the requested page, or raising an exception such as Http404. The rest is up to you.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+There’s a problem here, though: the page’s design is hard-coded in the view. If you want to change the way the page looks, you’ll have to edit this Python code. So let’s use Django’s template system to separate the design from Python by creating a template that the view can use.
+First, create a directory called templates in your polls directory. Django will look for templates in there.
+
+Your project’s TEMPLATES setting describes how Django will load and render templates. The default settings file configures a DjangoTemplates backend whose APP_DIRS option is set to True. By convention DjangoTemplates looks for a “templates” subdirectory in each of the INSTALLED_APPS.
+
+Within the templates directory you have just created, create another directory called polls, and within that create a file called index.html. In other words, your template should be at polls/templates/polls/index.html. Because of how the app_directories template loader works as described above, you can refer to this template within Django as polls/index.html.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+The render() function takes the request object as its first argument, a template name as its second argument and a dictionary as its optional third argument. It returns an HttpResponse object of the given template rendered with the given context.
+Why do we use a helper function get_object_or_404() instead of automatically catching the ObjectDoesNotExist exceptions at a higher level, or having the model API raise Http404 instead of ObjectDoesNotExist?
+
+Because that would couple the model layer to the view layer. One of the foremost design goals of Django is to maintain loose coupling. Some controlled coupling is introduced in the django.shortcuts module.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Django’s generic views.
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- Docker DOCKER is an engine installed on either Windows or Linux that uses OS-level virtualization to run containers.
+A Docker file contains the instructions Docker needs to build a container image. In most cases, images are built from a base image and contain the bare minimum components to run your container, such as the .NET Core SDK.
+
+
+Build your web application as an image with Docker build
+The command to build your application into an image is docker build. When you run a Docker build, you need to tell Docker where the dockerfile is. If the dockerfile exists in the current directory, you run the build command docker build .. It is common practice to tag your build with your Docker username/application name. To tag your build, simply add the -t username/application name to the build command:
+
+docker build . -t octopussamples/octopetshop-web
+
+docker run octopussamples/octopetshop-web
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------

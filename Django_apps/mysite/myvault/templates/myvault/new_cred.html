@@ -1,0 +1,32 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myvault/style1.css' %}">
+
+<h2>ENTER THE BELOW DETAILS :</h2>
+
+<form action="{% url 'myvault:add_credential' %}" method="post">
+{% csrf_token %}
+<ul>
+    <li>
+      <label for="applic">Application/Service:</label>
+      <input type="text" id="name" name="applic" required="required">
+    </li>
+    <li>
+      <label for="user">UserName:</label>
+      <input type="text" id="name" name="user" required="required">
+    </li>
+    <li>
+      <label for="pass">Password:</label>
+      <input type="text" id="passcode" name="pass" required="required">
+    </li>
+    <li>
+        <label for="desc">Description:</label>
+        <textarea id="description" name="desc" >No Description Given!</textarea>
+    </li>    
+   </ul>
+   <br>
+<input type="submit" value="ADD"  style="background-color : green; color : white; border-color : blue">
+</form>
+<br>
+<a href="{% url 'myvault:home' %}">
+    <input type="submit" value="HOME" style="background-color : rgb(13, 245, 233); color : white; border-color : blue";>
+</a>

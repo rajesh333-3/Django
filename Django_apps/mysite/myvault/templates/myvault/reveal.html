@@ -1,0 +1,21 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'myvault/style1.css' %}">
+
+{% if app %}
+<h2>Credentials for {{ app.app_name }}</h2>
+<h3>UserName     :{{ app.username }}</h3>
+<h3>Password     :{{ app.password }}</h3>
+<h3>Description  :{{ app.description }}</h3>
+<h3>Last Updated :{{ app.last_updated }}</h3>
+{%else%}
+<h2>No app Detected!</h2>
+{%endif%}
+<br>
+<a href="{% url 'myvault:delete_credential'  app.app_name %}">
+    <input type="submit" value="DELETE" style="background-color : rgb(250, 3, 3); color : white; border-color : blue";>
+</a>
+<br>
+<br>
+<a href="{% url 'myvault:home' %}">
+    <input type="submit" value="HOME" style="background-color : rgb(13, 245, 233); color : white; border-color : blue";>
+</a>
