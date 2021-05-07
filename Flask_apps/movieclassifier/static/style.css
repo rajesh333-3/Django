@@ -1,0 +1,14 @@
+li a {
+    color: whitesmoke;
+}
+
+
+.button{
+	padding-top: 20px;
+}
+
+body {
+	width:600px;
+    background: white url("images/Ai_loading.gif") ;
+    background-size:100%;
+}
